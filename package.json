@@ -1,0 +1,34 @@
+{
+  "name": "js-symbol-extension",
+  "displayName": "JS Symbol Extension",
+  "description": "Adds symbols for JavaScript code with 'selectXXX' keys.",
+  "version": "0.1.0",
+  "main": "./out/extension",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc",
+    "watch": "tsc -w"
+  },
+  "dependencies": {
+    "vscode": "^1.1.37"
+  },
+  "devDependencies": {
+    "typescript": "^4.0.0"
+  },
+  "engines": {
+    "vscode": "^1.81.0"
+  },
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onCommand:js-symbol-extension.addSymbols"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "js-symbol-extension.addSymbols",
+        "title": "Add Symbols for selectXXX"
+      }
+    ]
+  }
+}
