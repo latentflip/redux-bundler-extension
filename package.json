@@ -1,33 +1,37 @@
 {
-  "name": "js-symbol-extension",
-  "displayName": "JS Symbol Extension",
+  "name": "redux-bundler-extension",
+  "displayName": "Redux Bundler Extension",
   "description": "Adds symbols for JavaScript code with 'selectXXX' keys.",
   "version": "0.1.0",
   "main": "./out/extension",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/latentflip/redux-bundler-extension.git"
+  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "package": "npm run compile && vsce package"
   },
-  "dependencies": {
-    "vscode": "^1.1.37"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "typescript": "^4.0.0"
+    "vscode": "^1.1.37",
+    "typescript": "^4.0.0",
+    "vsce": "^2.15.0"
   },
   "engines": {
     "vscode": "^1.81.0"
   },
   "activationEvents": [
     "onLanguage:javascript",
-    "onLanguage:javascriptreact",
-    "onCommand:js-symbol-extension.addSymbols"
+    "onLanguage:javascriptreact"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "js-symbol-extension.addSymbols",
-        "title": "Add Symbols for selectXXX"
+        "command": "redux-bundler-extension.addSymbols",
+        "title": "Add Symbols for selectXXX, doXXX and reactXXX"
       }
     ]
   }
