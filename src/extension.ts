@@ -6,19 +6,65 @@ const symbolCache: {
 } = {};
 
 const symbolResultCache: vscode.SymbolInformation[] = [];
-
+let symbolLocationsCache: { [key: string]: vscode.Location } = {};
 const config = vscode.workspace.getConfiguration("reduxBundlerExtension");
 
 // Access the user's configuration values
-const directoryToSearch = config.get<string>("bundlesPath", "src/bundles");
+const directoriesToSearch = config.get<string[]>("bundlePaths", ["src"]);
 const ignorePattern = config.get<string>("ignorePattern", "**/*.spec.js");
 const modulesToInclude = config.get<string[]>("modulesToInclude", []);
 
-async function findWorkspaceFiles(folder: vscode.WorkspaceFolder) {
-  let files = await vscode.workspace.findFiles(
-    new vscode.RelativePattern(folder, directoryToSearch + "/**/*.js"),
-    ignorePattern
+console.log({ directoriesToSearch, ignorePattern, modulesToInclude });
+
+export class MyDefinitionProvider implements vscode.DefinitionProvider {
+  provideDefinition(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    token: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.Definition> {
+    // Custom logic to determine the definition location based on the selected string.
+    const targetLocation = findDefinitionLocation(document, position);
+
+    if (targetLocation) {
+      return new vscode.Location(targetLocation.uri, targetLocation.range);
+    } else {
+      return null;
+    }
+  }
+}
+
+function findDefinitionLocation(
+  document: vscode.TextDocument,
+  position: vscode.Position
+): vscode.Location | undefined {
+  // Custom logic to identify the target location based on the selected string.
+  // You may search for comments or metadata in the text document.
+  // Return a Location object if a valid target is found.
+  // Otherwise, return undefined.
+  const range = document.getWordRangeAtPosition(
+    position,
+    /(\b(select|do|react)[A-Z]\w+\b)/
   );
+  if (range) {
+    const text = document.getText(range);
+    console.log(symbolLocationsCache[Object.keys(symbolLocationsCache)[0]]);
+    console.log(symbolLocationsCache[text]);
+    return symbolLocationsCache[text];
+  }
+  return;
+}
+
+async function findWorkspaceFiles(folder: vscode.WorkspaceFolder) {
+  let files: any[] = [];
+
+  for (const directoryToSearch of directoriesToSearch) {
+    files = files.concat(
+      await vscode.workspace.findFiles(
+        new vscode.RelativePattern(folder, directoryToSearch + "/**/*.js"),
+        ignorePattern
+      )
+    );
+  }
 
   for (const module of modulesToInclude) {
     files = files.concat(
@@ -28,13 +74,25 @@ async function findWorkspaceFiles(folder: vscode.WorkspaceFolder) {
       )
     );
   }
+  console.log(
+    "Searching in",
+    files.length,
+    "files from",
+    folder.name,
+    directoriesToSearch,
+    modulesToInclude
+  );
   return files;
 }
 
 const rebuildSymbolResultCache = () => {
   symbolResultCache.length = 0;
+  symbolLocationsCache = {};
   for (const key in symbolCache) {
     symbolResultCache.push(...symbolCache[key].symbols);
+    symbolCache[key].symbols.forEach((symbol) => {
+      symbolLocationsCache[symbol.name] = symbol.location;
+    });
   }
 };
 
@@ -50,6 +108,16 @@ export async function activate(context: vscode.ExtensionContext) {
         return symbolResultCache;
       },
     });
+
+  const myDefinitionProvider = new MyDefinitionProvider();
+
+  // Register the definition provider for a specific language (e.g., JavaScript).
+  context.subscriptions.push(
+    vscode.languages.registerDefinitionProvider(
+      { scheme: "file", language: "javascript" },
+      myDefinitionProvider
+    )
+  );
 
   // Register a listener for the "onDidSaveTextDocument" event
   vscode.workspace.onDidSaveTextDocument(async (document) => {
@@ -97,19 +165,6 @@ async function preloadSymbols() {
   }
   rebuildSymbolResultCache();
   console.log("Preloaded", symbolResultCache.length, "symbols");
-}
-
-async function hasFileBeenModified(
-  file: vscode.Uri,
-  cachedTimestamp: number
-): Promise<boolean> {
-  // Check if the file's modification timestamp has changed since caching
-  // @ts-ignore
-  const stats = await vscode.workspace.fs.stat(file);
-  const fileModificationTime = stats.mtime;
-
-  // Compare the file's modification timestamp with the cached timestamp
-  return fileModificationTime > cachedTimestamp;
 }
 
 function processFileSymbols(

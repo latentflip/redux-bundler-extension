@@ -2,7 +2,7 @@
   "name": "redux-bundler-extension",
   "displayName": "Redux Bundler Extension",
   "description": "Adds symbols for JavaScript code with 'selectXXX' keys.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "./out/extension",
   "repository": {
     "type": "git",
@@ -12,7 +12,7 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc",
     "watch": "tsc -w",
-    "package": "npm run compile && vsce package"
+    "package": "rm *.vsix && npm run compile && vsce package"
   },
   "dependencies": {},
   "devDependencies": {
@@ -33,6 +33,28 @@
         "command": "redux-bundler-extension.addSymbols",
         "title": "Add Symbols for selectXXX, doXXX and reactXXX"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Redux Bundler Extension",
+      "properties": {
+        "reduxBundlerExtension.bundlePaths": {
+          "type": "array",
+          "default": [
+            "src"
+          ],
+          "description": "Directories to search for redux-bundler bundles"
+        },
+        "reduxBundlerExtension.ignorePattern": {
+          "type": "string",
+          "default": "**/*.spec.js",
+          "description": "Files to ignore"
+        },
+        "reduxBundlerExtension.modulesToInclude": {
+          "type": "array",
+          "default": [],
+          "description": "Node modules to include in the search"
+        }
+      }
+    }
   }
 }

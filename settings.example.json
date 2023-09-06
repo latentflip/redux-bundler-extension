@@ -1,5 +1,5 @@
 {
-  "reduxBundlerExtension.bundlesPath": "src/bundles",
+  "reduxBundlerExtension.bundlePaths": ["src/bundles"],
   "reduxBundlerExtension.modulesToInclude": [],
   "reduxBundlerExtension.ignorePattern": "**/*.spec.js"
 }
